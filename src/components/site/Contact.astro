@@ -1,15 +1,53 @@
 <section class="contact" id="contato">
 <div class="shell contact-grid">
 <div>
-<p class="overline">
-<span class="accent-line">
-</span>CONVERSE COM A LINEAR</p>
-<h2>Os dados já existem na operação.<br>Vamos entender o que falta enxergar.</h2>
+<p class="overline"><span class="accent-line"></span>AVALIAÇÃO INICIAL</p>
+<h2>Quer descobrir se esse problema existe na sua operação?</h2>
+<p class="contact-lead">Conte o mínimo necessário para entendermos seu cenário. O objetivo é avaliar se faz sentido conversar sobre um piloto — não enviar uma proposta automática.</p>
+<div class="contact-points">
+<span>✓ conversa exploratória</span>
+<span>✓ sem compromisso de contratação</span>
+<span>✓ foco em 2–5 ativos no primeiro piloto</span>
 </div>
-<div class="contact-action">
-<p>Uma conversa sobre consumo, produção e os pontos que sua equipe ainda precisa investigar manualmente.</p>
-<a class="btn btn-dark" href="mailto:gustavo.maciel@linearintelligence.com.br?subject=Conversa%20sobre%20a%20Linear&amp;body=Ol%C3%A1%2C%20gostaria%20de%20conversar%20sobre%20a%20Linear.">Enviar e-mail</a>
-<small>gustavo.maciel@linearintelligence.com.br</small>
+</div>
+<div class="interest-card">
+<form id="interest-form" novalidate>
+<label>Nome *<input name="contact" required maxlength="160" autocomplete="name"></label>
+<label>Empresa *<input name="company" required maxlength="160" autocomplete="organization"></label>
+<label>Cargo<input name="role" maxlength="120" autocomplete="organization-title"></label>
+<div class="form-pair">
+<label>WhatsApp / telefone *<input name="phone" required maxlength="40" autocomplete="tel" inputmode="tel"></label>
+<label>E-mail<input name="email" type="email" maxlength="254" autocomplete="email"></label>
+</div>
+<label>Faixa aproximada da conta de energia
+<select name="energyBill">
+<option value="">Prefiro não informar</option>
+<option value="ate_10k">Até R$ 10 mil/mês</option>
+<option value="10_30k">R$ 10–30 mil/mês</option>
+<option value="30_100k">R$ 30–100 mil/mês</option>
+<option value="100k_plus">Acima de R$ 100 mil/mês</option>
+</select>
+</label>
+<label>O que mais chama atenção hoje?
+<select name="interest">
+<option value="reduzir_custos">Reduzir custos de energia</option>
+<option value="identificar_desperdicios">Identificar desperdícios</option>
+<option value="monitorar_maquinas">Monitorar máquinas</option>
+<option value="entender_consumo">Entender melhor o consumo</option>
+<option value="outro">Outro</option>
+</select>
+</label>
+<label class="hp-field" aria-hidden="true">Site<input name="website" tabindex="-1" autocomplete="off"></label>
+<button class="btn btn-dark submit-interest" type="submit">Quero avaliar minha indústria</button>
+<p class="form-note">Ao enviar, seus dados serão usados apenas para contato sobre a avaliação da Linear.</p>
+<p id="interest-status" class="interest-status" role="status" aria-live="polite"></p>
+</form>
+<div id="interest-success" class="interest-success" hidden>
+<span>INTERESSE REGISTRADO</span>
+<h3>Recebemos suas informações.</h3>
+<p>Vamos analisar o cenário informado e entrar em contato para entender se a Linear pode ser aplicada à sua operação.</p>
+<a href="#produto">Rever a demonstração</a>
+</div>
 </div>
 </div>
 </section>
