@@ -9,11 +9,12 @@ if(menu&&mobile){
 const year=document.getElementById('year');if(year)year.textContent=new Date().getFullYear();
 
 const params=new URLSearchParams(location.search);
+const clip=(value,max)=>String(value||'').slice(0,max);
 const acquisition={
-  source:params.get('ref')||document.referrer||'direct',
-  utmSource:params.get('utm_source')||'',
-  utmMedium:params.get('utm_medium')||'',
-  utmCampaign:params.get('utm_campaign')||''
+  source:clip(params.get('ref')||document.referrer||'direct',100),
+  utmSource:clip(params.get('utm_source'),120),
+  utmMedium:clip(params.get('utm_medium'),120),
+  utmCampaign:clip(params.get('utm_campaign'),160)
 };
 let sessionId=sessionStorage.getItem('linear_smoke_session');
 if(!sessionId){sessionId=crypto.randomUUID();sessionStorage.setItem('linear_smoke_session',sessionId)}
