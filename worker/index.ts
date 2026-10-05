@@ -1,5 +1,5 @@
 import { authorize, type AuthEnv } from './auth';
-import { leadSchema, activitySchema } from '../src/lib/commercial';
+import { leadSchema, activitySchema, smokeInterestSchema, smokeEventSchema } from '../src/lib/commercial';
 
 export interface Env extends AuthEnv { ASSETS: Fetcher; DB: D1Database }
 export const privatePath = (path: string) => path === '/admin' || path.startsWith('/admin/') || path === '/api' || path.startsWith('/api/');
@@ -39,12 +39,71 @@ async function readBody(request: Request) {
   for (const chunk of chunks) { data.set(chunk, offset); offset += chunk.length; }
   return JSON.parse(new TextDecoder().decode(data));
 }
+const sameOrigin = (request: Request) => request.headers.get('Origin') === new URL(request.url).origin;
+const energyLabels: Record<string, string> = {
+  '': 'não informado', ate_10k: 'até R$ 10 mil/mês', '10_30k': 'R$ 10–30 mil/mês',
+  '30_100k': 'R$ 30–100 mil/mês', '100k_plus': 'acima de R$ 100 mil/mês',
+};
+const interestLabels: Record<string, string> = {
+  reduzir_custos: 'reduzir custos de energia', identificar_desperdicios: 'identificar desperdícios',
+  monitorar_maquinas: 'monitorar máquinas', entender_consumo: 'entender melhor o consumo', outro: 'outro',
+};
+async function publicApi(request: Request, env: Env): Promise<Response | null> {
+  const { pathname } = new URL(request.url);
+  if (pathname !== '/interest' && pathname !== '/events') return null;
+  if (request.method !== 'POST') return json({ error: 'Método não permitido.' }, 405);
+  if (!sameOrigin(request)) return json({ error: 'Origem não permitida.' }, 403);
+  if (!env.DB) return json({ error: 'Serviço temporariamente indisponível.' }, 503);
+  if (pathname === '/events') {
+    const parsed = smokeEventSchema.safeParse(await readBody(request));
+    if (!parsed.success) return json({ error: 'Evento inválido.' }, 400);
+    const event = parsed.data;
+    await env.DB.prepare(
+      'INSERT INTO smoke_events (id,sessionId,name,path,source,utmSource,utmMedium,utmCampaign,metadata,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?)'
+    ).bind(
+      crypto.randomUUID(), event.sessionId, event.name, event.path, event.source,
+      event.utmSource, event.utmMedium, event.utmCampaign, JSON.stringify(event.metadata), new Date().toISOString()
+    ).run();
+    return new Response(null, { status: 204 });
+  }
+  const parsed = smokeInterestSchema.safeParse(await readBody(request));
+  if (!parsed.success) return json({ error: 'Revise nome, empresa, telefone e e-mail.' }, 400);
+  const interest = parsed.data;
+  if (interest.website) return json({ ok: true }, 201);
+  const id = crypto.randomUUID();
+  const now = new Date().toISOString();
+  const sourceDetail = (interest.utmSource || interest.source || 'site').slice(0, 70);
+  const source = `Landing · ${sourceDetail}`;
+  const notes = [
+    `Cargo: ${interest.role || 'não informado'}`,
+    `Conta de energia: ${energyLabels[interest.energyBill]}`,
+    `Interesse principal: ${interestLabels[interest.interest]}`,
+    interest.utmMedium ? `UTM medium: ${interest.utmMedium}` : '',
+    interest.utmCampaign ? `UTM campaign: ${interest.utmCampaign}` : '',
+  ].filter(Boolean).join('\n');
+  await env.DB.batch([
+    env.DB.prepare(
+      'INSERT INTO leads (company,contact,email,phone,stage,valueCents,source,nextAction,nextContact,notes,updatedAt,createdAt,id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)'
+    ).bind(
+      interest.company, interest.contact, interest.email, interest.phone, 'novo', 0, source,
+      'Entrar em contato para avaliar aderência ao piloto da Linear.', '', notes, now, now, id
+    ),
+    env.DB.prepare('INSERT INTO audit_log (id, actor, action, recordId, createdAt) VALUES (?, ?, ?, ?, ?)')
+      .bind(crypto.randomUUID(), 'landing', 'lead.create', id, now),
+  ]);
+  return json({ ok: true }, 201);
+}
 export async function api(request: Request, env: Env, actor: string, local = false): Promise<Response> {
   const { pathname, origin } = new URL(request.url);
   if (request.method !== 'GET' && request.headers.get('Origin') !== origin) return json({ error: 'Origem não permitida.' }, 403);
   if (pathname === '/api/session' && request.method === 'GET') return json({ email: actor, local });
   if (!env.DB) return json({ error: 'Banco de dados não configurado.' }, 503);
   const audit = (action: string, recordId: string) => env.DB.prepare('INSERT INTO audit_log (id, actor, action, recordId, createdAt) VALUES (?, ?, ?, ?, ?)').bind(crypto.randomUUID(), actor, action, recordId, new Date().toISOString());
+  if (pathname === '/api/smoke-metrics' && request.method === 'GET') {
+    const events = await env.DB.prepare('SELECT name, COUNT(*) AS count FROM smoke_events GROUP BY name').all();
+    const leads = await env.DB.prepare("SELECT COUNT(*) AS count FROM leads WHERE source LIKE 'Landing · %'").first<{ count: number }>();
+    return json({ events: events.results, leads: leads?.count ?? 0 });
+  }
   if (pathname === '/api/leads' && request.method === 'GET') {
     const result = await env.DB.prepare('SELECT * FROM leads ORDER BY updatedAt DESC').all();
     return json(result.results);
@@ -89,6 +148,8 @@ export async function api(request: Request, env: Env, actor: string, local = fal
 export async function handle(request: Request, env: Env, identity: string | null = null, local = false) {
   const path = new URL(request.url).pathname;
   try {
+    const publicResponse = await publicApi(request, env);
+    if (publicResponse) return secure(publicResponse, request);
     if (privatePath(path)) {
       const actor = identity ?? await authorize(request, env);
       if (!actor) return secure(json({ error: 'Acesso restrito. Entre com sua conta autorizada pelo Cloudflare Access.' }, 401), request);
