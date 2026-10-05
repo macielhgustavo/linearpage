@@ -57,3 +57,46 @@ Os dados do painel são demonstrativos. O botão de contato abre um rascunho par
 - Fotografia do motor: [iSawRed / Unsplash](https://unsplash.com/photos/a-large-factory-machinery-C4c9iOcy4_8).
 - Fotografia da linha industrial: Unsplash, incluída na versão anterior do site.
 - Referência de identidade visual: material fornecido pelo proprietário da Linear.
+
+
+## Deploy automático pela main
+
+O repositório contém o workflow `.github/workflows/deploy.yml`, que pode publicar a aplicação automaticamente na Cloudflare após push/merge na `main`.
+
+O deploy fica **desativado por padrão**. Para habilitar, configure no GitHub:
+
+**Settings → Secrets and variables → Actions**
+
+Secrets obrigatórios:
+- `CLOUDFLARE_API_TOKEN`
+- `CLOUDFLARE_ACCOUNT_ID`
+- `CLOUDFLARE_D1_DATABASE_ID`
+- `ACCESS_TEAM_DOMAIN`
+- `ACCESS_AUD`
+
+Variable obrigatória:
+- `DEPLOY_ENABLED=true`
+
+O workflow:
+1. instala dependências;
+2. executa check, testes e build;
+3. gera `wrangler.generated.jsonc` somente dentro do runner;
+4. aplica migrations D1 remotas;
+5. publica o Worker.
+
+Credenciais e IDs de produção não são gravados no repositório. O arquivo gerado é temporário e não deve ser commitado.
+
+### Token da Cloudflare
+
+Crie um API Token com apenas as permissões necessárias para este projeto. Ele precisa conseguir publicar Workers e operar migrations no D1 da conta usada pela Linear. Evite Global API Key.
+
+### Primeiro deploy
+
+Antes de colocar `DEPLOY_ENABLED=true`, confirme na Cloudflare:
+- o Worker correto é `linearpage`;
+- o banco D1 correto é `linear-admin`;
+- o domínio `linearintelligence.com.br` está associado ao Worker correto;
+- Cloudflare Access protege `/admin` e `/api`;
+- `ACCESS_TEAM_DOMAIN` e `ACCESS_AUD` correspondem à aplicação Access configurada.
+
+Depois disso, habilite `DEPLOY_ENABLED=true` e execute manualmente **Actions → Deploy Linear → Run workflow** uma vez. Se passar, merges futuros na `main` passam a publicar automaticamente.
