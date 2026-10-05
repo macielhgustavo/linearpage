@@ -250,3 +250,95 @@ section{scroll-margin-top:78px}
 @media(prefers-reduced-motion:reduce){:root{scroll-behavior:auto}
 *{transition:none!important;animation:none!important}
 }
+
+
+/* Smoke MVP v2 */
+.hero-proof{margin-top:20px!important;font-size:11px!important;letter-spacing:.04em;color:#9fb6ba!important}
+.problem-questions{display:grid;gap:11px;margin-top:30px}
+.problem-questions span{font-size:13px;font-weight:600;color:#29474d;padding-left:18px;position:relative}
+.problem-questions span:before{content:'→';position:absolute;left:0;color:#00a992}
+
+.smoke-demo{background:#fff;border-top:2px solid var(--navy);box-shadow:0 18px 45px rgba(15,29,34,.06)}
+.smoke-demo-head{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:30px 34px;border-bottom:1px solid #dbe4e2}
+.smoke-demo-head h3{font-size:25px;letter-spacing:-.04em;margin-top:8px}
+.demo-badge{font-size:10px;letter-spacing:.08em;font-weight:700;color:#687f83;border:1px solid #d6e0de;padding:9px 12px}
+.smoke-metrics{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid #dbe4e2}
+.smoke-metrics article{padding:26px 30px;border-right:1px solid #dbe4e2}
+.smoke-metrics article:last-child{border-right:0}
+.smoke-metrics span,.opportunity-impact span,.analysis-action span{display:block;font-size:9px;letter-spacing:.12em;font-weight:800;color:#73898d}
+.smoke-metrics strong{display:block;font-size:28px;letter-spacing:-.045em;margin:12px 0 7px}
+.smoke-metrics small{color:#7b8e92;font-size:11px}
+.smoke-metrics .opportunity{background:#e8f4f1}
+.smoke-metrics .opportunity strong{color:#087363}
+.opportunity-list{padding:28px 34px 10px}
+.opportunity-card{display:grid;grid-template-columns:1fr auto;gap:35px;border:1px solid #d8e2e0;padding:26px 28px}
+.opportunity-card.featured{border-left:3px solid #a45d3e}
+.status-pill{display:inline-flex;background:#f4ebe7;color:#8b4e35;padding:7px 9px;font-size:9px;letter-spacing:.08em;font-weight:800;text-transform:uppercase}
+.opportunity-main h4{font-size:24px;letter-spacing:-.04em;margin:15px 0 10px}
+.opportunity-main p{max-width:700px;font-size:13px;line-height:1.7;color:#607377}
+.opportunity-impact{text-align:right;min-width:175px}
+.opportunity-impact strong{display:block;font-size:22px;letter-spacing:-.04em;margin:11px 0 7px}
+.opportunity-impact small{font-size:11px;color:#8a6c60}
+.analysis-panel{display:grid;grid-template-columns:1.2fr .8fr;gap:45px;background:#0e3a58;color:#eef6f5;padding:28px;margin-top:12px}
+.analysis-panel h4{font-size:20px;margin:10px 0 10px}
+.analysis-panel p{font-size:12px;line-height:1.7;color:#c3d4d7}
+.analysis-panel .data-label{color:#7fd8ca}
+.analysis-action{border-left:1px solid #44667a;padding-left:25px}
+.analysis-action span{color:#7fd8ca}
+.analysis-action strong{display:block;font-size:15px;line-height:1.5;margin:10px 0}
+.analysis-action small{font-size:10px;line-height:1.5;color:#a9c0c4}
+.opportunity-row{display:flex;justify-content:space-between;gap:20px;padding:18px 4px;border-bottom:1px solid #e1e7e6;font-size:12px}
+.opportunity-row strong{white-space:nowrap}
+.smoke-demo .demo-footer{padding:18px 34px 24px;margin:0}
+.smoke-demo .demo-footer a{color:#087363;font-weight:700}
+
+.how-grid{display:grid;grid-template-columns:repeat(3,1fr);margin-top:48px;border-top:1px solid #3d5058;border-bottom:1px solid #3d5058}
+.how-grid article{padding:32px 28px 36px;border-right:1px solid #3d5058}
+.how-grid article:last-child{border-right:0}
+.how-grid article>span{font-size:10px;color:#79d8ca;font-weight:800;letter-spacing:.13em}
+.how-grid h3{font-size:24px;letter-spacing:-.04em;margin:42px 0 14px}
+.how-grid p{font-size:13px;line-height:1.7;color:#b8c9cc}
+.integration-note{display:grid;grid-template-columns:.45fr 1fr;gap:40px;padding-top:28px;margin-top:28px}
+.integration-note span{font-size:10px;letter-spacing:.12em;font-weight:800;color:#75d6c8}
+.integration-note p{font-size:13px;line-height:1.7;color:#afc2c5;max-width:720px}
+
+.contact{padding:105px 0}
+.contact-grid{align-items:start}
+.contact-lead{font-size:15px;line-height:1.75;color:#607377;max-width:650px;margin-top:25px}
+.contact-points{display:grid;gap:10px;margin-top:28px;font-size:12px;font-weight:600;color:#31585e}
+.interest-card{background:#fff;border-top:3px solid var(--navy);padding:28px;box-shadow:0 16px 40px rgba(15,29,34,.07)}
+#interest-form{display:grid;gap:16px}
+#interest-form label{display:grid;gap:7px;font-size:10px;letter-spacing:.06em;font-weight:700;color:#536b70}
+#interest-form input,#interest-form select{width:100%;height:45px;border:1px solid #ccd8d6;background:#fff;padding:0 12px;font:inherit;font-size:13px;color:var(--ink);outline:none}
+#interest-form input:focus,#interest-form select:focus{border-color:#00a992;box-shadow:0 0 0 2px rgba(0,169,146,.1)}
+.form-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.submit-interest{width:100%;margin-top:2px}
+.submit-interest:disabled{opacity:.65;cursor:wait;transform:none}
+.form-note{font-size:10px;line-height:1.5;color:#849396}
+.interest-status{font-size:12px;line-height:1.5;color:#8b4e35;min-height:18px}
+.hp-field{position:absolute!important;left:-9999px!important;width:1px!important;height:1px!important;overflow:hidden!important}
+.interest-success{padding:15px 5px 5px}
+.interest-success>span{font-size:10px;letter-spacing:.13em;font-weight:800;color:#008d7e}
+.interest-success h3{font-size:27px;letter-spacing:-.04em;margin:17px 0 12px}
+.interest-success p{font-size:13px;line-height:1.7;color:#607377;margin-bottom:20px}
+.interest-success a{font-size:12px;font-weight:700;color:#087363;border-bottom:1px solid #087363;padding-bottom:4px}
+
+@media(max-width:760px){
+  .smoke-demo-head{padding:23px 20px;align-items:flex-start}
+  .smoke-metrics{grid-template-columns:1fr}
+  .smoke-metrics article{border-right:0;border-bottom:1px solid #dbe4e2;padding:20px}
+  .smoke-metrics article:last-child{border-bottom:0}
+  .opportunity-list{padding:20px 18px 5px}
+  .opportunity-card,.analysis-panel{grid-template-columns:1fr}
+  .opportunity-card{padding:21px 19px;gap:20px}
+  .opportunity-impact{text-align:left}
+  .analysis-panel{gap:25px;padding:22px 20px}
+  .analysis-action{border-left:0;border-top:1px solid #44667a;padding:20px 0 0}
+  .smoke-demo .demo-footer{padding:18px 20px 22px;display:grid;gap:12px}
+  .how-grid{grid-template-columns:1fr}
+  .how-grid article{border-right:0;border-bottom:1px solid #3d5058}
+  .how-grid article:last-child{border-bottom:0}
+  .integration-note{grid-template-columns:1fr;gap:15px}
+  .form-pair{grid-template-columns:1fr}
+  .interest-card{margin-top:35px;padding:22px 18px}
+}
