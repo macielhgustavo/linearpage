@@ -1,5 +1,5 @@
-import { db, configured } from './_lib/db.mjs';
-import { send, requireAdmin, method } from './_lib/http.mjs';
+import { db, configured } from '../server/db.mjs';
+import { send, requireAdmin, method } from '../server/http.mjs';
 
 export default async function handler(req, res) {
   if (!method(req, res, ['GET'])) return;
