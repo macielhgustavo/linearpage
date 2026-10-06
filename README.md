@@ -1,102 +1,140 @@
-# Linear
+# Linear Inteligência Industrial
 
-Site institucional existente migrado para Astro + TypeScript, com CRM interno do CEO em `/admin/`. O painel começa vazio e oferece oportunidades, agenda de contatos, histórico e exportação CSV. Valores ganhos representam negócios fechados, não recebimentos financeiros.
+Landing page e MVP fumaça da Linear, com formulário de interesse, analytics first-party e CRM interno.
 
-## Executar localmente
+## Stack
 
-Use Node 24. Execute `npm ci` e `npm run dev`. Site: `http://localhost:8000/`; painel: `http://localhost:8000/admin/`.
+- Astro + TypeScript
+- Vercel para deploy, CDN e Functions
+- MongoDB Atlas para persistência
+- GitHub Actions apenas para validação
 
-O comando gera o site, aplica migrations em D1 local e inicia o Worker em loopback. Após editar o frontend, execute `npm run build` para atualizar o preview. Dados locais persistem em `.wrangler/`, ignorada pelo Git. O preview local tem identidade automática e deve conter somente dados de teste.
+A aplicação não depende mais de Cloudflare Workers, D1, Cloudflare Access ou Supabase.
 
-Validação: `npm run check`, `npm test` e `npm run build`.
+## Desenvolvimento
 
-## Estrutura
+Use Node 24.
 
-- `src/components/site/`: seções preservadas do site.
-- `src/layouts/`: estrutura e SEO institucional.
-- `src/pages/admin/`, `src/scripts/admin.ts`: painel comercial.
-- `src/lib/commercial.ts`: validação e indicadores.
-- `worker/`: API, autenticação e headers.
-- `migrations/`: esquema D1 versionado.
+```bash
+npm install
+npm run dev
+```
 
-Astro gera o frontend, um Cloudflare Worker serve o site e a API, e D1 persiste os dados. Não há React, ORM, CMS ou servidor dedicado. O cadastro é manual: o link de e-mail público não cria leads automaticamente.
+Validação:
 
-## Publicação na Cloudflare
+```bash
+npm run check
+npm test
+npm run build
+```
 
-O workflow anterior publicava no GitHub Pages. Foi substituído por validação, sem deploy automático. Confirme a origem atual do domínio antes de alterar DNS ou rotas.
+## Deploy na Vercel
 
-1. Autentique na conta correta com `npx wrangler login`.
-2. Execute `npx wrangler d1 create linear-admin` e preencha `database_id` em `wrangler.jsonc`.
-3. Crie uma aplicação Cloudflare Access self-hosted protegendo `/admin` e `/api`, incluindo subcaminhos, no domínio da Linear. Use o mesmo AUD em ambos. A política Allow deve aceitar somente `gustavo.maciel@linearintelligence.com.br`. Prefira provedor de identidade com MFA obrigatório; essa exigência deve ser configurada no Access/provedor.
-4. Preencha `ACCESS_TEAM_DOMAIN` (hostname `equipe.cloudflareaccess.com`) e `ACCESS_AUD`. Sem isso, o Worker bloqueia todas as rotas privadas.
-5. Aplique migrations: `npx wrangler d1 migrations apply DB --remote`.
-6. Execute `npm run deploy` e configure o domínio/rota do Worker após revisar a origem. URLs `workers.dev` e previews estão desativados.
-7. Verifique o site público, o login em `/admin/`, bloqueio de outra conta, CRUD e histórico autenticados, e `Cache-Control: no-store` nas respostas privadas.
+O repositório está conectado diretamente à Vercel.
 
-Não há conta Cloudflare, D1 remoto ou Access provisionados por este código. A publicação só está concluída após configuração e teste autenticado no domínio.
+Com Git integration:
+- branches/PRs geram previews;
+- `main` é a branch de produção;
+- merge na `main` publica automaticamente;
+- não é necessário workflow de deploy no GitHub Actions.
 
-Nunca publique `wrangler.local.jsonc`: ele usa `worker/local.ts`, com identidade automática exclusivamente local. Produção usa `worker/index.ts` e valida Access sempre. Não publique `dist/` isoladamente, pois o Worker aplica autenticação e headers.
+Framework: Astro.
 
-## Segurança e dados
+## MongoDB
 
-O servidor valida assinatura RS256, emissor, audiência, expiração e e-mail do JWT Access. Um header de e-mail sozinho não autoriza acesso. Gravações exigem Origin da própria aplicação, JSON limitado a 24 KB, validação Zod e SQL parametrizado. O frontend renderiza dados como texto; não guarda tokens no localStorage.
+A persistência usa o driver oficial do MongoDB dentro das Vercel Functions.
 
-Headers incluem CSP, proteção contra frames, MIME sniffing e cache privado. CSP permite estilos inline para os gráficos e layout existente, mas bloqueia scripts inline. Toda alteração gera registro em `audit_log`. Exclusões exigem confirmação e removem o histórico da oportunidade.
+Database padrão:
 
-Antes de migrations futuras, exporte D1 com `npx wrangler d1 export DB --remote --output <arquivo-protegido.sql>` e guarde fora do Git. Defina retenção/backups conforme a necessidade da empresa. CSV contém as oportunidades filtradas e não substitui backup completo.
+```text
+linear
+```
 
-Uso individual: edições simultâneas em duas abas usam a última gravação. Esta versão não inclui financeiro, portal do cliente, integração de e-mail ou analytics de tráfego.
+Collections criadas automaticamente:
 
-## Conteúdo e contato
+- `linear_leads`
+- `linear_activities`
+- `linear_audit_log`
+- `linear_smoke_events`
 
-Os dados do painel são demonstrativos. O botão de contato abre um rascunho para `gustavo.maciel@linearintelligence.com.br`; ele não envia informações automaticamente.
+Os índices essenciais também são criados automaticamente quando uma Function inicializa a conexão.
 
-## Imagens
+## Variáveis da Vercel
 
-- Fotografia de injetoras: [RPWORLD / Unsplash](https://unsplash.com/photos/a-factory-filled-with-lots-of-machines-and-machinery-IWJNXtezL2I).
-- Fotografia do motor: [iSawRed / Unsplash](https://unsplash.com/photos/a-large-factory-machinery-C4c9iOcy4_8).
-- Fotografia da linha industrial: Unsplash, incluída na versão anterior do site.
-- Referência de identidade visual: material fornecido pelo proprietário da Linear.
+Configure em Project Settings → Environment Variables:
 
+```text
+MONGODB_URI
+MONGODB_DB
+ADMIN_TOKEN
+ADMIN_EMAIL
+```
 
-## Deploy automático pela main
+Sugestão:
 
-O repositório contém o workflow `.github/workflows/deploy.yml`, que pode publicar a aplicação automaticamente na Cloudflare após push/merge na `main`.
+```text
+MONGODB_DB=linear
+ADMIN_EMAIL=gustavo.maciel@linearintelligence.com.br
+```
 
-O deploy fica **desativado por padrão**. Para habilitar, configure no GitHub:
+`MONGODB_URI` e `ADMIN_TOKEN` devem ser tratados como secrets/sensitive e nunca expostos no frontend.
 
-**Settings → Secrets and variables → Actions**
+## Formulário e analytics
 
-Secrets obrigatórios:
-- `CLOUDFLARE_API_TOKEN`
-- `CLOUDFLARE_ACCOUNT_ID`
-- `CLOUDFLARE_D1_DATABASE_ID`
-- `ACCESS_TEAM_DOMAIN`
-- `ACCESS_AUD`
+A landing usa:
 
-Variable obrigatória:
-- `DEPLOY_ENABLED=true`
+```text
+POST /api/interest
+POST /api/events
+```
 
-O workflow:
-1. instala dependências;
-2. executa check, testes e build;
-3. gera `wrangler.generated.jsonc` somente dentro do runner;
-4. aplica migrations D1 remotas;
-5. publica o Worker.
+Funil registrado:
 
-Credenciais e IDs de produção não são gravados no repositório. O arquivo gerado é temporário e não deve ser commitado.
+```text
+landing_view
+scroll_50
+demo_view
+how_it_works_view
+cta_click
+form_start
+form_submit
+form_error
+```
 
-### Token da Cloudflare
+## Admin
 
-Crie um API Token com apenas as permissões necessárias para este projeto. Ele precisa conseguir publicar Workers e operar migrations no D1 da conta usada pela Linear. Evite Global API Key.
+CRM:
 
-### Primeiro deploy
+```text
+/admin/
+```
 
-Antes de colocar `DEPLOY_ENABLED=true`, confirme na Cloudflare:
-- o Worker correto é `linearpage`;
-- o banco D1 correto é `linear-admin`;
-- o domínio `linearintelligence.com.br` está associado ao Worker correto;
-- Cloudflare Access protege `/admin` e `/api`;
-- `ACCESS_TEAM_DOMAIN` e `ACCESS_AUD` correspondem à aplicação Access configurada.
+Na primeira abertura, o navegador solicita o `ADMIN_TOKEN`. Ele fica somente em `sessionStorage` durante a sessão e é enviado no header `Authorization` para as Functions privadas.
 
-Depois disso, habilite `DEPLOY_ENABLED=true` e execute manualmente **Actions → Deploy Linear → Run workflow** uma vez. Se passar, merges futuros na `main` passam a publicar automaticamente.
+Rotas privadas:
+
+```text
+GET/POST/PUT/DELETE /api/leads
+GET/POST /api/activities
+GET /api/session
+GET /api/smoke-metrics
+```
+
+## Segurança
+
+- gravações validam origem;
+- payloads são limitados/validados;
+- a URI do MongoDB existe somente no servidor;
+- o admin exige `ADMIN_TOKEN`;
+- o formulário tem honeypot básico;
+- headers de segurança são definidos em `vercel.json`.
+
+## Domínio
+
+Produção prevista:
+
+```text
+https://linearintelligence.com.br
+```
+
+O domínio deve ser adicionado ao projeto Vercel e o DNS apontado exatamente como o painel da Vercel indicar.

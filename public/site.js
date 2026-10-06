@@ -24,7 +24,7 @@ async function track(name,metadata={}){
   if(once.includes(name)&&sent.has(name))return;
   if(once.includes(name))sent.add(name);
   try{
-    await fetch('/events',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({
+    await fetch('/api/events',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({
       sessionId,name,path:location.pathname,metadata,...acquisition
     }),keepalive:true});
   }catch{}
@@ -59,7 +59,7 @@ if(form){
     }
     submit.disabled=true;submit.textContent='Enviando…';status.textContent='';
     try{
-      const response=await fetch('/interest',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...data,...acquisition})});
+      const response=await fetch('/api/interest',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...data,...acquisition})});
       if(!response.ok){const body=await response.json().catch(()=>({}));throw new Error(body.error||'Não foi possível enviar.')}
       await track('form_submit',{energyBill:data.energyBill||'',interest:data.interest||''});
       form.hidden=true;success.hidden=false;
