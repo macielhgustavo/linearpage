@@ -1,4 +1,4 @@
-import { db, configured } from '../server/db.mjs';
+import { database, collections, configured } from '../server/db.mjs';
 import { send, sameOrigin, readJson, method } from '../server/http.mjs';
 
 const energyLabels = {
@@ -18,6 +18,7 @@ export default async function handler(req, res) {
   if (!method(req, res, ['POST'])) return;
   if (!sameOrigin(req)) return send(res, 403, { error: 'Origem não permitida.' });
   if (!configured()) return send(res, 503, { error: 'Banco de dados ainda não configurado.' });
+
   try {
     const raw = await readJson(req);
     const payload = {
@@ -34,6 +35,7 @@ export default async function handler(req, res) {
       utmMedium: text(raw.utmMedium, 120),
       utmCampaign: text(raw.utmCampaign, 160),
     };
+
     if (!payload.company || !payload.contact || payload.phone.length < 6) {
       return send(res, 400, { error: 'Revise nome, empresa e telefone.' });
     }
@@ -51,33 +53,37 @@ export default async function handler(req, res) {
       payload.utmCampaign ? `UTM campaign: ${payload.utmCampaign}` : '',
     ].filter(Boolean).join('\n');
 
-    const created = await db('linear_leads', {
-      method: 'POST',
-      headers: { Prefer: 'return=representation' },
-      body: JSON.stringify({
-        company: payload.company,
-        contact: payload.contact,
-        email: payload.email,
-        phone: payload.phone,
-        stage: 'novo',
-        value_cents: 0,
-        source: `Landing · ${sourceDetail}`,
-        next_action: 'Entrar em contato para avaliar aderência ao piloto da Linear.',
-        next_contact: '',
-        notes,
-      }),
+    const db = await database();
+    const now = new Date();
+    const lead = {
+      company: payload.company,
+      contact: payload.contact,
+      email: payload.email,
+      phone: payload.phone,
+      stage: 'novo',
+      valueCents: 0,
+      source: `Landing · ${sourceDetail}`,
+      nextAction: 'Entrar em contato para avaliar aderência ao piloto da Linear.',
+      nextContact: '',
+      notes,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    const result = await db.collection(collections.leads).insertOne(lead);
+    await db.collection(collections.audit).insertOne({
+      actor: 'landing',
+      action: 'lead.create',
+      recordId: result.insertedId,
+      createdAt: now,
     });
-    const leadId = created?.[0]?.id;
-    if (leadId) {
-      await db('linear_audit_log', {
-        method: 'POST',
-        body: JSON.stringify({ actor: 'landing', action: 'lead.create', record_id: leadId }),
-      });
-    }
+
     return send(res, 201, { ok: true });
   } catch (error) {
     console.error(error);
     const bad = error instanceof SyntaxError || ['CONTENT_TYPE', 'SIZE'].includes(error?.message);
-    return send(res, bad ? 400 : 500, { error: bad ? 'Requisição inválida.' : 'Não foi possível concluir. Tente novamente.' });
+    return send(res, bad ? 400 : 500, {
+      error: bad ? 'Requisição inválida.' : 'Não foi possível concluir. Tente novamente.',
+    });
   }
 }
