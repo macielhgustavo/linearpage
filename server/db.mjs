@@ -4,6 +4,7 @@ const uri = process.env.MONGODB_URI;
 const dbName = process.env.MONGODB_DB || 'linear';
 
 let clientPromise;
+let indexesPromise;
 
 export function configured() {
   return Boolean(uri);
@@ -23,7 +24,18 @@ export async function database() {
     clientPromise = client.connect();
   }
   const client = await clientPromise;
-  return client.db(dbName);
+  const db = client.db(dbName);
+  if (!indexesPromise) {
+    indexesPromise = Promise.all([
+      db.collection(collections.leads).createIndex({ updatedAt: -1 }),
+      db.collection(collections.leads).createIndex({ stage: 1, nextContact: 1 }),
+      db.collection(collections.activities).createIndex({ leadId: 1, createdAt: -1 }),
+      db.collection(collections.events).createIndex({ name: 1, createdAt: -1 }),
+      db.collection(collections.events).createIndex({ sessionId: 1, createdAt: -1 }),
+    ]);
+  }
+  await indexesPromise;
+  return db;
 }
 
 export const collections = {
