@@ -1,48 +1,57 @@
-const required = ['SUPABASE_URL', 'SUPABASE_SECRET_KEY'];
+import { MongoClient, ServerApiVersion } from 'mongodb';
+
+const uri = process.env.MONGODB_URI;
+const dbName = process.env.MONGODB_DB || 'linear';
+
+let clientPromise;
 
 export function configured() {
-  return required.every((key) => process.env[key]?.trim());
+  return Boolean(uri);
 }
 
-export async function db(path, options = {}) {
-  if (!configured()) throw new Error('DB_NOT_CONFIGURED');
-  const base = process.env.SUPABASE_URL.replace(/\/$/, '');
-  const response = await fetch(`${base}/rest/v1/${path}`, {
-    ...options,
-    headers: {
-      apikey: process.env.SUPABASE_SECRET_KEY,
-      'Content-Type': 'application/json',
-      ...(options.headers || {}),
-    },
-  });
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`SUPABASE_${response.status}: ${body.slice(0, 500)}`);
+export async function database() {
+  if (!uri) throw new Error('DB_NOT_CONFIGURED');
+  if (!clientPromise) {
+    const client = new MongoClient(uri, {
+      serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+      },
+      maxPoolSize: 10,
+    });
+    clientPromise = client.connect();
   }
-  if (response.status === 204) return null;
-  const text = await response.text();
-  return text ? JSON.parse(text) : null;
+  const client = await clientPromise;
+  return client.db(dbName);
 }
 
-export const leadFromRow = (row) => ({
-  id: row.id,
-  company: row.company,
-  contact: row.contact || '',
-  email: row.email || '',
-  phone: row.phone || '',
-  stage: row.stage,
-  valueCents: Number(row.value_cents || 0),
-  source: row.source || '',
-  nextAction: row.next_action || '',
-  nextContact: row.next_contact || '',
-  notes: row.notes || '',
-  createdAt: row.created_at,
-  updatedAt: row.updated_at,
+export const collections = {
+  leads: 'linear_leads',
+  activities: 'linear_activities',
+  audit: 'linear_audit_log',
+  events: 'linear_smoke_events',
+};
+
+export const leadFromDoc = (doc) => ({
+  id: String(doc._id),
+  company: doc.company,
+  contact: doc.contact || '',
+  email: doc.email || '',
+  phone: doc.phone || '',
+  stage: doc.stage,
+  valueCents: Number(doc.valueCents || 0),
+  source: doc.source || '',
+  nextAction: doc.nextAction || '',
+  nextContact: doc.nextContact || '',
+  notes: doc.notes || '',
+  createdAt: doc.createdAt instanceof Date ? doc.createdAt.toISOString() : String(doc.createdAt || ''),
+  updatedAt: doc.updatedAt instanceof Date ? doc.updatedAt.toISOString() : String(doc.updatedAt || ''),
 });
 
-export const activityFromRow = (row) => ({
-  id: row.id,
-  leadId: row.lead_id,
-  text: row.text,
-  createdAt: row.created_at,
+export const activityFromDoc = (doc) => ({
+  id: String(doc._id),
+  leadId: String(doc.leadId),
+  text: doc.text,
+  createdAt: doc.createdAt instanceof Date ? doc.createdAt.toISOString() : String(doc.createdAt || ''),
 });
