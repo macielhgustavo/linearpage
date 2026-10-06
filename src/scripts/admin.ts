@@ -19,11 +19,23 @@ function element<K extends keyof HTMLElementTagNameMap>(tag: K, content = '', cl
   node.className = className;
   return node;
 }
+function adminToken() {
+  let token = sessionStorage.getItem('linear_admin_token') || '';
+  if (!token) {
+    token = window.prompt('Token administrativo da Linear')?.trim() || '';
+    if (token) sessionStorage.setItem('linear_admin_token', token);
+  }
+  return token;
+}
 async function request<T>(path: string, method = 'GET', body?: unknown): Promise<T> {
-  const response = await fetch(path, { method, credentials: 'same-origin', headers: body ? { 'Content-Type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined });
+  const token = adminToken();
+  const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+  if (body) headers['Content-Type'] = 'application/json';
+  const response = await fetch(path, { method, credentials: 'same-origin', headers, body: body ? JSON.stringify(body) : undefined });
   if (!response.ok) {
     let message = response.status === 401 ? 'Sua sessão expirou. Entre novamente.' : 'Não foi possível concluir. Tente novamente.';
-    try { message = (await response.json()).error || message; } catch { /* An Access redirect may return HTML instead of JSON. */ }
+    try { message = (await response.json()).error || message; } catch { /* Resposta sem JSON. */ }
+    if (response.status === 401) sessionStorage.removeItem('linear_admin_token');
     throw new Error(message);
   }
   if (response.status === 204) return undefined as T;
@@ -154,7 +166,7 @@ function openLead(lead?: Lead) {
 async function loadActivities(id: string) {
   $('activities').replaceChildren(element('p', 'Carregando histórico...', 'quiet'));
   try {
-    const entries = await request<Activity[]>(`/api/leads/${id}/activities`);
+    const entries = await request<Activity[]>(`/api/activities?leadId=${encodeURIComponent(id)}`);
     if (id !== selected) return;
     $('activities').replaceChildren();
     if (!entries.length) $('activities').append(element('p', 'Nenhum contato registrado.', 'quiet'));
@@ -178,7 +190,7 @@ form.addEventListener('submit', async event => {
   const data = new FormData(form);
   const field = (name: string) => String(data.get(name) ?? '');
   try {
-    const lead = await request<Lead>(selected ? `/api/leads/${selected}` : '/api/leads', selected ? 'PUT' : 'POST', {
+    const lead = await request<Lead>(selected ? `/api/leads?id=${encodeURIComponent(selected)}` : '/api/leads', selected ? 'PUT' : 'POST', {
       company: field('company'), contact: field('contact'), email: field('email').trim(), phone: field('phone'),
       source: field('source'), stage: field('stage') as Stage, valueCents: Math.round(Number(field('value')) * 100),
       nextContact: field('nextContact'), nextAction: field('nextAction'), notes: field('notes'),
@@ -194,7 +206,7 @@ $('activity-form').addEventListener('submit', async event => {
   lock(true); text('activity-error', '');
   const id = selected;
   try {
-    await request(`/api/leads/${id}/activities`, 'POST', { text: $<HTMLTextAreaElement>('activity-text').value });
+    await request(`/api/activities?leadId=${encodeURIComponent(id)}`, 'POST', { text: $<HTMLTextAreaElement>('activity-text').value });
     $<HTMLTextAreaElement>('activity-text').value = '';
     await loadActivities(id);
   } catch (error) { text('activity-error', message(error)); }
@@ -207,7 +219,7 @@ $('confirm-delete').addEventListener('click', async () => {
   lock(true);
   $<HTMLButtonElement>('confirm-delete').disabled = true;
   try {
-    await request(`/api/leads/${selected}`, 'DELETE');
+    await request(`/api/leads?id=${encodeURIComponent(selected)}`, 'DELETE');
     leads = leads.filter(lead => lead.id !== selected);
     render(); $<HTMLDialogElement>('delete-dialog').close(); dialog.close(); text('status', 'Oportunidade excluída.');
   } catch (error) { text('delete-error', message(error)); }
@@ -238,3 +250,6 @@ void (async () => {
     await refresh();
   } catch (error) { text('status', message(error)); text('identity', 'Acesso indisponível'); }
 })();
+
+const logout = document.getElementById('admin-logout');
+logout?.addEventListener('click', event => { event.preventDefault(); sessionStorage.removeItem('linear_admin_token'); location.reload(); });
