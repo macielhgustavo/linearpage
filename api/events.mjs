@@ -1,5 +1,5 @@
-import { db, configured } from './_lib/db.mjs';
-import { send, sameOrigin, readJson, method } from './_lib/http.mjs';
+import { db, configured } from '../server/db.mjs';
+import { send, sameOrigin, readJson, method } from '../server/http.mjs';
 
 const allowed = new Set(['landing_view','scroll_50','demo_view','how_it_works_view','cta_click','form_start','form_submit','form_error']);
 const text = (value, max) => String(value || '').trim().slice(0, max);
