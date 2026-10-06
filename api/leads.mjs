@@ -1,5 +1,5 @@
-import { db, configured, leadFromRow } from './_lib/db.mjs';
-import { send, sameOrigin, readJson, requireAdmin, method } from './_lib/http.mjs';
+import { db, configured, leadFromRow } from '../server/db.mjs';
+import { send, sameOrigin, readJson, requireAdmin, method } from '../server/http.mjs';
 
 const stages = new Set(['novo','qualificado','proposta','negociacao','ganho','perdido']);
 const text = (value, max) => String(value || '').trim().slice(0, max);
