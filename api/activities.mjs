@@ -1,5 +1,5 @@
-import { db, configured, activityFromRow } from './_lib/db.mjs';
-import { send, sameOrigin, readJson, requireAdmin, method } from './_lib/http.mjs';
+import { db, configured, activityFromRow } from '../server/db.mjs';
+import { send, sameOrigin, readJson, requireAdmin, method } from '../server/http.mjs';
 
 const validId = (id) => /^[a-f0-9-]{36}$/i.test(id || '');
 
