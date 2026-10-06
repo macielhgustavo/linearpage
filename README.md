@@ -6,17 +6,17 @@ Landing page e MVP fumaça da Linear, com formulário de interesse, analytics fi
 
 - Astro + TypeScript
 - Vercel para deploy, CDN e Functions
-- Supabase/Postgres para persistência
+- MongoDB Atlas para persistência
 - GitHub Actions apenas para validação
 
-A aplicação não depende mais de Cloudflare Workers, D1 ou Cloudflare Access.
+A aplicação não depende mais de Cloudflare Workers, D1, Cloudflare Access ou Supabase.
 
 ## Desenvolvimento
 
 Use Node 24.
 
 ```bash
-npm ci
+npm install
 npm run dev
 ```
 
@@ -30,7 +30,7 @@ npm run build
 
 ## Deploy na Vercel
 
-O repositório deve ser conectado diretamente à Vercel.
+O repositório está conectado diretamente à Vercel.
 
 Com Git integration:
 - branches/PRs geram previews;
@@ -40,36 +40,44 @@ Com Git integration:
 
 Framework: Astro.
 
-## Banco de dados
+## MongoDB
 
-A persistência usa Supabase por meio de Vercel Functions. O navegador nunca recebe a chave secreta do banco.
+A persistência usa o driver oficial do MongoDB dentro das Vercel Functions.
 
-Schema:
+Database padrão:
 
 ```text
-supabase/linear_schema.sql
+linear
 ```
 
-Tabelas:
+Collections criadas automaticamente:
+
 - `linear_leads`
 - `linear_activities`
 - `linear_audit_log`
 - `linear_smoke_events`
 
-Todas usam RLS e têm acesso público revogado. O backend usa somente uma secret key configurada na Vercel.
+Os índices essenciais também são criados automaticamente quando uma Function inicializa a conexão.
 
 ## Variáveis da Vercel
 
 Configure em Project Settings → Environment Variables:
 
 ```text
-SUPABASE_URL
-SUPABASE_SECRET_KEY
+MONGODB_URI
+MONGODB_DB
 ADMIN_TOKEN
 ADMIN_EMAIL
 ```
 
-`SUPABASE_SECRET_KEY` e `ADMIN_TOKEN` devem ser sensíveis e nunca expostos no cliente.
+Sugestão:
+
+```text
+MONGODB_DB=linear
+ADMIN_EMAIL=gustavo.maciel@linearintelligence.com.br
+```
+
+`MONGODB_URI` e `ADMIN_TOKEN` devem ser tratados como secrets/sensitive e nunca expostos no frontend.
 
 ## Formulário e analytics
 
@@ -116,11 +124,10 @@ GET /api/smoke-metrics
 
 - gravações validam origem;
 - payloads são limitados/validados;
-- a secret key do Supabase existe somente no servidor;
+- a URI do MongoDB existe somente no servidor;
 - o admin exige `ADMIN_TOKEN`;
-- tabelas têm RLS e acesso público revogado;
-- formulário com honeypot básico;
-- headers de segurança em `vercel.json`.
+- o formulário tem honeypot básico;
+- headers de segurança são definidos em `vercel.json`.
 
 ## Domínio
 
