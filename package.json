@@ -10,18 +10,16 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
-    "@cloudflare/workers-types": "^5.20260929.1",
     "@playwright/test": "^1.63.0",
     "parse5": "^8.0.1",
     "tsx": "^4.23.15",
-    "typescript": "^6.0.3",
-    "wrangler": "^4.144.0"
+    "typescript": "^6.0.3"
   },
   "dependencies": {
     "astro": "^7.3.5",
     "jose": "^6.2.12",
     "lucide": "^1.49.0",
     "zod": "^4.6.5",
-    "mongodb": "^7.7.0"
+    "mongodb": "7.7.0"
   }
 }
