@@ -1,5 +1,5 @@
-import { db, configured } from './_lib/db.mjs';
-import { send, sameOrigin, readJson, method } from './_lib/http.mjs';
+import { db, configured } from '../server/db.mjs';
+import { send, sameOrigin, readJson, method } from '../server/http.mjs';
 
 const energyLabels = {
   '': 'não informado', ate_10k: 'até R$ 10 mil/mês', '10_30k': 'R$ 10–30 mil/mês',
