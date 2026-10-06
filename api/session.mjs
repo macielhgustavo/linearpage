@@ -1,4 +1,4 @@
-import { send, requireAdmin, method } from './_lib/http.mjs';
+import { send, requireAdmin, method } from '../server/http.mjs';
 export default async function handler(req, res) {
   if (!method(req, res, ['GET'])) return;
   if (!requireAdmin(req, res)) return;
