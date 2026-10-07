@@ -1,94 +1,59 @@
 # Linear Inteligência Industrial
 
-Landing page e MVP fumaça da Linear, com formulário de interesse, analytics first-party e CRM interno.
+Site institucional e MVP da **Linear Inteligência Industrial**, empresa voltada ao uso de dados para melhorar a eficiência operacional e energética de indústrias.
+
+O projeto combina uma landing page B2B com captação de leads, analytics próprios e um CRM interno simples para acompanhar o funil comercial sem depender de plataformas externas para as etapas essenciais.
+
+## Sobre o projeto
+
+A proposta da Linear é ajudar indústrias a entender melhor consumo de energia, desperdícios, anomalias e desempenho de máquinas, setores e processos a partir de dados operacionais.
+
+Este repositório concentra a presença digital e a primeira camada operacional do produto:
+
+- site institucional responsivo;
+- formulário de interesse;
+- registro de eventos do funil;
+- persistência de leads;
+- CRM interno;
+- trilha de atividades;
+- métricas de smoke/MVP;
+- deploy contínuo na Vercel.
 
 ## Stack
 
-- Astro + TypeScript
-- Vercel para deploy, CDN e Functions
-- MongoDB Atlas para persistência
-- GitHub Actions apenas para validação
+- Astro
+- TypeScript
+- Vercel
+- Vercel Functions
+- MongoDB Atlas
+- GitHub Actions
 
-A aplicação não depende mais de Cloudflare Workers, D1, Cloudflare Access ou Supabase.
-
-## Desenvolvimento
-
-Use Node 24.
-
-```bash
-npm install
-npm run dev
-```
-
-Validação:
-
-```bash
-npm run check
-npm test
-npm run build
-```
-
-## Deploy na Vercel
-
-O repositório está conectado diretamente à Vercel.
-
-Com Git integration:
-- branches/PRs geram previews;
-- `main` é a branch de produção;
-- merge na `main` publica automaticamente;
-- não é necessário workflow de deploy no GitHub Actions.
-
-Framework: Astro.
-
-## MongoDB
-
-A persistência usa o driver oficial do MongoDB dentro das Vercel Functions.
-
-Database padrão:
+## Arquitetura
 
 ```text
-linear
+Frontend Astro
+   │
+   ├── landing institucional
+   ├── formulário de interesse
+   └── analytics first-party
+           │
+           ▼
+    Vercel Functions
+           │
+           ▼
+      MongoDB Atlas
+           │
+           ├── leads
+           ├── atividades
+           ├── auditoria
+           └── eventos do funil
 ```
 
-Collections criadas automaticamente:
+A aplicação não depende de Cloudflare Workers, D1 ou Supabase para sua operação atual.
 
-- `linear_leads`
-- `linear_activities`
-- `linear_audit_log`
-- `linear_smoke_events`
+## Funil e analytics
 
-Os índices essenciais também são criados automaticamente quando uma Function inicializa a conexão.
-
-## Variáveis da Vercel
-
-Configure em Project Settings → Environment Variables:
-
-```text
-MONGODB_URI
-MONGODB_DB
-ADMIN_TOKEN
-ADMIN_EMAIL
-```
-
-Sugestão:
-
-```text
-MONGODB_DB=linear
-ADMIN_EMAIL=gustavo.maciel@linearintelligence.com.br
-```
-
-`MONGODB_URI` e `ADMIN_TOKEN` devem ser tratados como secrets/sensitive e nunca expostos no frontend.
-
-## Formulário e analytics
-
-A landing usa:
-
-```text
-POST /api/interest
-POST /api/events
-```
-
-Funil registrado:
+Os principais eventos registrados são:
 
 ```text
 landing_view
@@ -101,17 +66,19 @@ form_submit
 form_error
 ```
 
-## Admin
+A ideia é acompanhar o comportamento do visitante sem adicionar uma plataforma de analytics como dependência obrigatória para o MVP.
 
-CRM:
+## CRM interno
+
+A área administrativa fica em:
 
 ```text
 /admin/
 ```
 
-Na primeira abertura, o navegador solicita o `ADMIN_TOKEN`. Ele fica somente em `sessionStorage` durante a sessão e é enviado no header `Authorization` para as Functions privadas.
+Ela permite consultar e operar leads captados pelo site. O acesso utiliza `ADMIN_TOKEN`, mantido apenas na sessão do navegador e enviado no header `Authorization` para as rotas privadas.
 
-Rotas privadas:
+Principais endpoints internos:
 
 ```text
 GET/POST/PUT/DELETE /api/leads
@@ -120,21 +87,101 @@ GET /api/session
 GET /api/smoke-metrics
 ```
 
+## Persistência
+
+O backend utiliza o driver oficial do MongoDB dentro das Vercel Functions.
+
+Database padrão:
+
+```text
+linear
+```
+
+Collections:
+
+- `linear_leads`
+- `linear_activities`
+- `linear_audit_log`
+- `linear_smoke_events`
+
+Os índices essenciais são preparados automaticamente na inicialização da conexão.
+
 ## Segurança
 
+Algumas decisões adotadas no MVP:
+
+- `MONGODB_URI` permanece somente no servidor;
+- rotas administrativas exigem autenticação por token;
+- payloads recebidos são limitados e validados;
 - gravações validam origem;
-- payloads são limitados/validados;
-- a URI do MongoDB existe somente no servidor;
-- o admin exige `ADMIN_TOKEN`;
-- o formulário tem honeypot básico;
-- headers de segurança são definidos em `vercel.json`.
+- formulário possui honeypot básico contra bots;
+- headers de segurança são definidos no deploy;
+- secrets não são expostos no frontend.
 
-## Domínio
+## Como executar
 
-Produção prevista:
+Requisito recomendado: Node.js 24.
+
+```bash
+npm install
+npm run dev
+```
+
+Validação local:
+
+```bash
+npm run check
+npm test
+npm run build
+```
+
+## Variáveis de ambiente
+
+```text
+MONGODB_URI
+MONGODB_DB
+ADMIN_TOKEN
+ADMIN_EMAIL
+```
+
+Exemplo:
+
+```text
+MONGODB_DB=linear
+```
+
+Nunca versione credenciais reais.
+
+## Deploy
+
+O projeto usa integração direta com a Vercel:
+
+- branches e pull requests geram previews;
+- `main` representa produção;
+- merges na `main` publicam automaticamente;
+- GitHub Actions fica responsável por validação, não pelo deploy.
+
+## O que este projeto demonstra
+
+Além do frontend institucional, o repositório demonstra uma implementação enxuta de produto real, cobrindo:
+
+- frontend B2B;
+- backend serverless;
+- persistência em banco de dados;
+- captura e gestão de leads;
+- analytics próprio;
+- autenticação simples de área administrativa;
+- deploy contínuo;
+- preocupação com segurança e operação desde o MVP.
+
+## Produção
+
+Domínio do projeto:
 
 ```text
 https://linearintelligence.com.br
 ```
 
-O domínio deve ser adicionado ao projeto Vercel e o DNS apontado exatamente como o painel da Vercel indicar.
+## Status
+
+MVP em evolução, utilizado como base digital e operacional da Linear Inteligência Industrial.
